@@ -25,7 +25,7 @@ function StatTile({
   }[tone];
 
   return (
-    <div className={`rounded-md border px-4 py-3 ${toneClass}`}>
+    <div className={`rounded-md border px-4 py-2.5 ${toneClass}`}>
       <p className="text-xs font-semibold uppercase text-zinc-500">{label}</p>
       <p className="mt-1 text-lg font-bold leading-tight">{value}</p>
     </div>
@@ -40,7 +40,7 @@ function Header({ pos }: { pos: POSController }) {
 
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-[1480px] flex-col gap-3 px-3 py-3 lg:px-4">
+      <div className="mx-auto flex max-w-[1480px] flex-col gap-2 px-3 py-2.5 lg:px-4">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-semibold text-emerald-700">

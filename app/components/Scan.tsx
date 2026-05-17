@@ -40,7 +40,7 @@ export function Scan({ pos }: ScanProps) {
   }
 
   return (
-    <section className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
+    <section className="rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-bold">Scan Barcode</h2>
         {message ? (
@@ -49,7 +49,7 @@ export function Scan({ pos }: ScanProps) {
           </p>
         ) : null}
       </div>
-      <form onSubmit={handleSubmit} className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+      <form onSubmit={handleSubmit} className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
         <input
           value={barcode}
           onChange={(event) => setBarcode(event.target.value)}

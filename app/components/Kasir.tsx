@@ -9,11 +9,11 @@ type KasirProps = {
 
 export function Kasir({ pos }: KasirProps) {
   return (
-    <section className="grid gap-3 lg:h-[calc(100vh-210px)] lg:grid-cols-[minmax(0,1fr)_390px]">
+    <section className="grid gap-3 lg:h-[calc(100dvh-230px)] lg:min-h-[540px] lg:grid-cols-[minmax(0,1fr)_390px]">
       <div className="flex min-h-0 flex-col gap-3">
         <Scan pos={pos} />
 
-        <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
+        <div className="rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm">
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
             <label className="space-y-1">
               <span className="text-xs font-semibold uppercase text-zinc-500">
@@ -44,14 +44,14 @@ export function Kasir({ pos }: KasirProps) {
         </div>
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-sm">
-          <div className="grid grid-cols-[1fr_108px_128px_92px] gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-bold uppercase text-zinc-500 max-md:hidden">
+          <div className="grid grid-cols-[1fr_96px_120px_86px] gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-bold uppercase text-zinc-500 max-md:hidden">
             <span>Produk</span>
             <span>Stok</span>
             <span>Harga</span>
             <span className="text-right">Aksi</span>
           </div>
 
-          <div className="max-h-[62vh] divide-y divide-zinc-200 overflow-y-auto lg:max-h-full">
+          <div className="max-h-[62vh] divide-y divide-zinc-200 overflow-y-auto pb-6 lg:max-h-full">
             {pos.filteredProducts.map((product) => {
               const cartQty =
                 pos.cart.find((line) => line.productId === product.id)?.qty ?? 0;
@@ -61,7 +61,7 @@ export function Kasir({ pos }: KasirProps) {
               return (
                 <article
                   key={product.id}
-                  className="grid gap-3 px-4 py-3 transition hover:bg-zinc-50 md:grid-cols-[1fr_108px_128px_92px] md:items-center"
+                  className="grid gap-3 px-4 py-2.5 transition hover:bg-zinc-50 md:grid-cols-[1fr_96px_120px_86px] md:items-center"
                 >
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-3 md:block">
@@ -69,7 +69,7 @@ export function Kasir({ pos }: KasirProps) {
                         <h3 className="truncate text-sm font-bold leading-5">
                           {product.name}
                         </h3>
-                        <p className="mt-1 text-xs font-semibold text-zinc-500">
+                        <p className="text-xs font-semibold text-zinc-500">
                           {product.sku} / {product.category}
                           {product.barcode ? ` / ${product.barcode}` : ""}
                         </p>
@@ -106,7 +106,7 @@ export function Kasir({ pos }: KasirProps) {
                     type="button"
                     onClick={() => pos.addToCart(product)}
                     disabled={!canAdd}
-                    className="h-9 rounded-md bg-zinc-950 px-3 text-sm font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                    className="h-8 rounded-md bg-zinc-950 px-3 text-sm font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
                   >
                     {cartQty > 0 ? `+${cartQty}` : "Tambah"}
                   </button>
