@@ -1,12 +1,137 @@
 "use client";
 
-import type { POSController } from "../types/pos";
+import JsBarcode from "jsbarcode";
+import type { POSController, Product } from "../types/pos";
 
 type ProdukProps = {
   pos: POSController;
 };
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export function Produk({ pos }: ProdukProps) {
+  function createBarcodeSvg(value: string) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+    JsBarcode(svg, value, {
+      format: "CODE128",
+      width: 1.4,
+      height: 42,
+      margin: 0,
+      displayValue: false,
+    });
+
+    return new XMLSerializer().serializeToString(svg);
+  }
+
+  function printBarcodeLabels(product: Product) {
+    const code = product.barcode.trim() || product.sku.trim();
+
+    if (!code) {
+      window.alert("Produk ini belum punya barcode atau SKU.");
+      return;
+    }
+
+    const copiesInput = window.prompt(
+      `Jumlah label untuk ${product.name}`,
+      "12",
+    );
+    const copies = Number(copiesInput);
+
+    if (!Number.isInteger(copies) || copies <= 0) {
+      return;
+    }
+
+    const barcodeSvg = createBarcodeSvg(code);
+    const labels = Array.from({ length: copies }, () => {
+      return `
+        <article class="label">
+          <p class="name">${escapeHtml(product.name)}</p>
+          <div class="barcode">${barcodeSvg}</div>
+          <p class="code">${escapeHtml(code)}</p>
+          <p class="price">${escapeHtml(pos.formatRupiah(product.price))}</p>
+        </article>
+      `;
+    }).join("");
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+
+    if (!printWindow) {
+      window.alert("Popup print diblokir browser.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <title>Barcode ${escapeHtml(product.name)}</title>
+          <style>
+            @page { margin: 8mm; }
+            * { box-sizing: border-box; }
+            body { margin: 0; color: #111; font-family: Arial, sans-serif; }
+            .sheet {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(46mm, 1fr));
+              gap: 3mm;
+              padding: 0;
+            }
+            .label {
+              width: 46mm;
+              min-height: 30mm;
+              overflow: hidden;
+              break-inside: avoid;
+              border: 1px dashed #bbb;
+              padding: 2.5mm;
+              text-align: center;
+            }
+            .name {
+              height: 8mm;
+              margin: 0;
+              overflow: hidden;
+              font-size: 9px;
+              font-weight: 700;
+              line-height: 1.2;
+            }
+            .barcode svg {
+              width: 100%;
+              height: 13mm;
+            }
+            .code {
+              margin: 1mm 0 0;
+              font-size: 8px;
+              font-weight: 700;
+              letter-spacing: 1px;
+            }
+            .price {
+              margin: 1mm 0 0;
+              font-size: 10px;
+              font-weight: 700;
+            }
+            @media print {
+              .label { border-color: transparent; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="sheet">${labels}</main>
+          <script>
+            window.addEventListener("load", () => {
+              window.print();
+            });
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
   return (
     <section className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <form
@@ -214,6 +339,13 @@ export function Produk({ pos }: ProdukProps) {
                           className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-bold hover:border-emerald-300 hover:text-emerald-800"
                         >
                           Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => printBarcodeLabels(product)}
+                          className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-bold hover:border-blue-300 hover:text-blue-700"
+                        >
+                          Barcode
                         </button>
                         <button
                           type="button"

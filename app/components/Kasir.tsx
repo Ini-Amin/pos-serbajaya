@@ -1,5 +1,6 @@
 "use client";
 
+import { Scan } from "./Scan";
 import type { POSController } from "../types/pos";
 
 type KasirProps = {
@@ -10,6 +11,8 @@ export function Kasir({ pos }: KasirProps) {
   return (
     <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
       <div className="space-y-4">
+        <Scan pos={pos} />
+
         <div className="rounded-lg border border-zinc-200 bg-white p-4">
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
             <label className="space-y-1">
