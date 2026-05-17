@@ -25,9 +25,9 @@ function StatTile({
   }[tone];
 
   return (
-    <div className={`rounded-lg border p-4 ${toneClass}`}>
+    <div className={`rounded-md border px-4 py-3 ${toneClass}`}>
       <p className="text-xs font-semibold uppercase text-zinc-500">{label}</p>
-      <p className="mt-2 text-xl font-bold leading-tight">{value}</p>
+      <p className="mt-1 text-lg font-bold leading-tight">{value}</p>
     </div>
   );
 }
@@ -39,14 +39,14 @@ function Header({ pos }: { pos: POSController }) {
   }
 
   return (
-    <header className="border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:px-6">
+    <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-[1480px] flex-col gap-3 px-3 py-3 lg:px-4">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-semibold text-emerald-700">
               Serbajaya Elektronik
             </p>
-            <h1 className="text-2xl font-bold leading-tight">
+            <h1 className="text-xl font-bold leading-tight">
               POS Toko Elektronik Rumah
             </h1>
           </div>
@@ -77,7 +77,7 @@ function Header({ pos }: { pos: POSController }) {
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile
             label="Omzet hari ini"
             value={pos.formatRupiah(pos.todayRevenue)}
@@ -139,7 +139,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-950">
       <Header pos={pos} />
-      <div className="mx-auto max-w-7xl px-4 py-5 lg:px-6">
+      <div className="mx-auto max-w-[1480px] px-3 py-3 lg:px-4">
         <ActiveScreen pos={pos} />
       </div>
     </main>
