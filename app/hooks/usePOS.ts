@@ -53,6 +53,7 @@ const emptySummary: ProductSummary = {
 const tabs: TabItem[] = [
   { key: "kasir", label: "Kasir" },
   { key: "produk", label: "Produk" },
+  { key: "nota", label: "Nota" },
   { key: "riwayat", label: "Riwayat" },
   { key: "laporan", label: "Laporan" },
   { key: "backup", label: "Backup" },

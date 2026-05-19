@@ -3,6 +3,7 @@
 import { Backup } from "./components/Backup";
 import { Kasir } from "./components/Kasir";
 import { Laporan } from "./components/Laporan";
+import { Nota } from "./components/Nota";
 import { Produk } from "./components/Produk";
 import { Riwayat } from "./components/Riwayat";
 import { usePOS } from "./hooks/usePOS";
@@ -120,6 +121,10 @@ function ActiveScreen({ pos }: { pos: POSController }) {
 
   if (pos.activeTab === "riwayat") {
     return <Riwayat pos={pos} />;
+  }
+
+  if (pos.activeTab === "nota") {
+    return <Nota pos={pos} />;
   }
 
   if (pos.activeTab === "laporan") {

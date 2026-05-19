@@ -82,7 +82,13 @@ export type ProductSummary = {
   lowStockCount: number;
 };
 
-export type TabKey = "kasir" | "produk" | "riwayat" | "laporan" | "backup";
+export type TabKey =
+  | "kasir"
+  | "produk"
+  | "nota"
+  | "riwayat"
+  | "laporan"
+  | "backup";
 
 export type Notice = {
   tone: "success" | "warning" | "error";
