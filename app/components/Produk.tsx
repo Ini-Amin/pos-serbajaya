@@ -16,6 +16,26 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
+function pageButtons(current: number, total: number) {
+  const pages = new Set([1, total, current, current - 1, current + 1]);
+  const visible = Array.from(pages)
+    .filter((page) => page >= 1 && page <= total)
+    .sort((a, b) => a - b);
+  const result: Array<number | "..."> = [];
+
+  visible.forEach((page, index) => {
+    const previous = visible[index - 1];
+
+    if (previous && page - previous > 1) {
+      result.push("...");
+    }
+
+    result.push(page);
+  });
+
+  return result;
+}
+
 export function Produk({ pos }: ProdukProps) {
   function createBarcodeSvg(value: string) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -278,15 +298,67 @@ export function Produk({ pos }: ProdukProps) {
 
         <button
           type="submit"
-          className="mt-4 h-11 w-full rounded-md bg-emerald-700 px-4 text-sm font-bold text-white hover:bg-emerald-800"
+          disabled={pos.savingProduct}
+          className="mt-4 h-11 w-full rounded-md bg-emerald-700 px-4 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
-          {pos.editingProductId ? "Simpan Perubahan" : "Tambah Produk"}
+          {pos.savingProduct
+            ? "Menyimpan..."
+            : pos.editingProductId
+              ? "Simpan Perubahan"
+              : "Tambah Produk"}
         </button>
       </form>
 
       <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
-        <div className="border-b border-zinc-200 p-4">
-          <h2 className="text-lg font-bold">Daftar Produk</h2>
+        <div className="grid gap-3 border-b border-zinc-200 p-4 xl:grid-cols-[1fr_auto] xl:items-end">
+          <div>
+            <h2 className="text-lg font-bold">Daftar Produk</h2>
+            <p className="text-sm font-semibold text-zinc-500">
+              {pos.productPagination.total} produk aktif
+            </p>
+          </div>
+          <div className="grid gap-2 md:grid-cols-[minmax(220px,1fr)_160px_150px_120px] xl:min-w-[720px]">
+            <input
+              value={pos.productSearch}
+              onChange={(event) => pos.setProductSearch(event.target.value)}
+              placeholder="Cari nama, SKU, barcode"
+              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            />
+            <select
+              value={pos.productCategory}
+              onChange={(event) => pos.setProductCategory(event.target.value)}
+              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            >
+              {pos.categories.map((category) => (
+                <option key={category}>{category}</option>
+              ))}
+            </select>
+            <select
+              value={pos.productSort}
+              onChange={(event) =>
+                pos.setProductSort(
+                  event.target.value as typeof pos.productSort,
+                )
+              }
+              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            >
+              <option value="name">Nama</option>
+              <option value="price">Harga jual</option>
+              <option value="cost">Harga modal</option>
+              <option value="stock">Stok</option>
+              <option value="updated_at">Terbaru</option>
+            </select>
+            <select
+              value={pos.productDir}
+              onChange={(event) =>
+                pos.setProductDir(event.target.value as typeof pos.productDir)
+              }
+              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            >
+              <option value="asc">A-Z / kecil</option>
+              <option value="desc">Z-A / besar</option>
+            </select>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
@@ -301,10 +373,26 @@ export function Produk({ pos }: ProdukProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200">
-              {pos.products
-                .slice()
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((product) => (
+              {pos.loadingProducts ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-10 text-center text-sm font-semibold text-zinc-500"
+                  >
+                    Memuat produk...
+                  </td>
+                </tr>
+              ) : pos.products.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-10 text-center text-sm font-semibold text-zinc-500"
+                  >
+                    Produk tidak ditemukan.
+                  </td>
+                </tr>
+              ) : (
+                pos.products.map((product) => (
                   <tr key={product.id}>
                     <td className="px-4 py-3">
                       <p className="font-bold">{product.name}</p>
@@ -357,9 +445,65 @@ export function Produk({ pos }: ProdukProps) {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
             </tbody>
           </table>
+        </div>
+        <div className="flex flex-col gap-3 border-t border-zinc-200 px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm font-semibold text-zinc-500">
+            Halaman {pos.productPagination.page} dari{" "}
+            {pos.productPagination.totalPages}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => pos.setProductPage((page) => Math.max(1, page - 1))}
+              disabled={!pos.productPagination.hasPrev || pos.loadingProducts}
+              className="h-9 rounded-md border border-zinc-200 px-3 text-sm font-bold disabled:cursor-not-allowed disabled:text-zinc-300"
+            >
+              Previous
+            </button>
+            {pageButtons(
+              pos.productPagination.page,
+              pos.productPagination.totalPages,
+            ).map((page, index) =>
+              page === "..." ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="px-2 text-sm font-bold text-zinc-400"
+                >
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => pos.setProductPage(page)}
+                  disabled={pos.loadingProducts}
+                  className={`h-9 min-w-9 rounded-md border px-3 text-sm font-bold ${
+                    page === pos.productPagination.page
+                      ? "border-emerald-700 bg-emerald-700 text-white"
+                      : "border-zinc-200 hover:border-zinc-400"
+                  }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              onClick={() =>
+                pos.setProductPage((page) =>
+                  Math.min(pos.productPagination.totalPages, page + 1),
+                )
+              }
+              disabled={!pos.productPagination.hasNext || pos.loadingProducts}
+              className="h-9 rounded-md border border-zinc-200 px-3 text-sm font-bold disabled:cursor-not-allowed disabled:text-zinc-300"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </section>

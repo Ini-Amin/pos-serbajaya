@@ -90,8 +90,8 @@ function Header({ pos }: { pos: POSController }) {
           />
           <StatTile
             label="Stok menipis"
-            value={`${pos.lowStockProducts.length} produk`}
-            tone={pos.lowStockProducts.length > 0 ? "amber" : "neutral"}
+            value={`${pos.productSummary.lowStockCount} produk`}
+            tone={pos.productSummary.lowStockCount > 0 ? "amber" : "neutral"}
           />
         </div>
 

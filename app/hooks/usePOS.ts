@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEvent, FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   CartItem,
   CartLine,
@@ -10,134 +10,18 @@ import type {
   POSController,
   Product,
   ProductForm,
+  ProductPagination,
   ProductSalesRank,
+  ProductSort,
+  ProductSortDirection,
+  ProductSummary,
   Sale,
-  SaleItem,
   TabItem,
   TabKey,
 } from "../types/pos";
 
 const STORAGE_KEY = "serbajaya-pos-local-v1";
-
-const initialProducts: Product[] = [
-  {
-    id: "prd-remote-universal",
-    name: "Remote TV Universal",
-    sku: "ELK-001",
-    barcode: "",
-    category: "Remote",
-    unit: "pcs",
-    price: 35000,
-    cost: 22000,
-    stock: 18,
-    minStock: 5,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-stop-kontak-4",
-    name: "Stop Kontak 4 Lubang 3 Meter",
-    sku: "ELK-002",
-    barcode: "",
-    category: "Kelistrikan",
-    unit: "pcs",
-    price: 68000,
-    cost: 47000,
-    stock: 12,
-    minStock: 4,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-kabel-hdmi",
-    name: "Kabel HDMI 1.5 Meter",
-    sku: "ELK-003",
-    barcode: "",
-    category: "Aksesoris TV",
-    unit: "pcs",
-    price: 28000,
-    cost: 17000,
-    stock: 25,
-    minStock: 6,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-set-top-box",
-    name: "Set Top Box DVB-T2",
-    sku: "ELK-004",
-    barcode: "",
-    category: "Aksesoris TV",
-    unit: "pcs",
-    price: 185000,
-    cost: 148000,
-    stock: 7,
-    minStock: 3,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-steker",
-    name: "Steker Arde",
-    sku: "ELK-005",
-    barcode: "",
-    category: "Kelistrikan",
-    unit: "pcs",
-    price: 12000,
-    cost: 7000,
-    stock: 38,
-    minStock: 10,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-lampu-led-12",
-    name: "Lampu LED 12W",
-    sku: "ELK-006",
-    barcode: "",
-    category: "Lampu",
-    unit: "pcs",
-    price: 26000,
-    cost: 18000,
-    stock: 16,
-    minStock: 5,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-antena-digital",
-    name: "Antena TV Digital Indoor",
-    sku: "ELK-007",
-    barcode: "",
-    category: "Aksesoris TV",
-    unit: "pcs",
-    price: 75000,
-    cost: 52000,
-    stock: 9,
-    minStock: 3,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-baterai-aaa",
-    name: "Baterai AAA Isi 2",
-    sku: "ELK-008",
-    barcode: "",
-    category: "Baterai",
-    unit: "pack",
-    price: 14000,
-    cost: 8500,
-    stock: 30,
-    minStock: 8,
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "prd-saklar-tunggal",
-    name: "Saklar Tunggal Tanam",
-    sku: "ELK-009",
-    barcode: "",
-    category: "Kelistrikan",
-    unit: "pcs",
-    price: 18000,
-    cost: 11500,
-    stock: 20,
-    minStock: 6,
-    updatedAt: new Date().toISOString(),
-  },
-];
+const PRODUCT_LIMIT = 20;
 
 const emptyProductForm: ProductForm = {
   name: "",
@@ -151,6 +35,21 @@ const emptyProductForm: ProductForm = {
   minStock: "3",
 };
 
+const emptyPagination: ProductPagination = {
+  page: 1,
+  limit: PRODUCT_LIMIT,
+  total: 0,
+  totalPages: 1,
+  hasPrev: false,
+  hasNext: false,
+};
+
+const emptySummary: ProductSummary = {
+  totalProducts: 0,
+  totalStock: 0,
+  lowStockCount: 0,
+};
+
 const tabs: TabItem[] = [
   { key: "kasir", label: "Kasir" },
   { key: "produk", label: "Produk" },
@@ -160,14 +59,6 @@ const tabs: TabItem[] = [
 ];
 
 const paymentMethods: PaymentMethod[] = ["Tunai", "QRIS Manual", "Transfer"];
-
-function createId(prefix: string) {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
 
 function formatRupiah(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -200,12 +91,13 @@ function parseMoney(value: string) {
   return Number(value.replace(/[^\d]/g, "")) || 0;
 }
 
-function makeInvoice(sequence: number) {
-  const now = new Date();
-  const date = getLocalDateKey(now).replaceAll("-", "");
-  const suffix = String(sequence + 1).padStart(4, "0");
-
-  return `SJ-${date}-${suffix}`;
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function isProduct(value: unknown): value is Product {
@@ -220,9 +112,11 @@ function isProduct(value: unknown): value is Product {
     typeof product.name === "string" &&
     typeof product.sku === "string" &&
     typeof product.category === "string" &&
+    typeof product.unit === "string" &&
     typeof product.price === "number" &&
     typeof product.cost === "number" &&
-    typeof product.stock === "number"
+    typeof product.stock === "number" &&
+    typeof product.minStock === "number"
   );
 }
 
@@ -242,22 +136,64 @@ function isSale(value: unknown): value is Sale {
   );
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function readApiMessage(payload: unknown, fallback: string) {
+  if (payload && typeof payload === "object" && "message" in payload) {
+    const message = (payload as { message: unknown }).message;
+
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+
+  return fallback;
+}
+
+async function readApiJson(response: Response) {
+  try {
+    return (await response.json()) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSale(value: unknown): Sale | null {
+  if (!isSale(value)) {
+    return null;
+  }
+
+  return {
+    ...value,
+    status: value.status ?? "completed",
+    paymentMethod: value.paymentMethod ?? "Tunai",
+    note: value.note ?? "",
+  };
 }
 
 export function usePOS(): POSController {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [cashierProducts, setCashierProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>("kasir");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState("");
+  const [cashierSearch, setCashierSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Semua");
+  const [productSearch, setProductSearch] = useState("");
+  const [debouncedProductSearch, setDebouncedProductSearch] = useState("");
+  const [productCategory, setProductCategory] = useState("Semua");
+  const [productSort, setProductSort] = useState<ProductSort>("name");
+  const [productDir, setProductDir] = useState<ProductSortDirection>("asc");
+  const [productPage, setProductPage] = useState(1);
+  const [productLimit, setProductLimit] = useState(PRODUCT_LIMIT);
+  const [productPagination, setProductPagination] =
+    useState<ProductPagination>(emptyPagination);
+  const [productSummary, setProductSummary] =
+    useState<ProductSummary>(emptySummary);
+  const [categories, setCategories] = useState<string[]>(["Semua"]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingCashierProducts, setLoadingCashierProducts] = useState(false);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
   const [discount, setDiscount] = useState("");
   const [paid, setPaid] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Tunai");
@@ -269,36 +205,53 @@ export function usePOS(): POSController {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [historyQuery, setHistoryQuery] = useState("");
 
+  function showNotice(tone: NonNullable<Notice>["tone"], message: string) {
+    setNotice({ tone, message });
+  }
+
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- Local POS data is hydrated from localStorage after mount. */
+    const timer = window.setTimeout(() => {
+      setCashierSearch(query);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedProductSearch(productSearch);
+      setProductPage(1);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [productSearch]);
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Product query controls intentionally reset pagination. */
+    setProductPage(1);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [productCategory, productDir, productLimit, productSort]);
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Sales history is hydrated from localStorage after mount. */
     const raw = localStorage.getItem(STORAGE_KEY);
 
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as {
-          products?: unknown[];
           sales?: unknown[];
         };
-        const storedProducts = Array.isArray(parsed.products)
-          ? parsed.products.filter(isProduct)
-          : [];
         const storedSales = Array.isArray(parsed.sales)
-          ? parsed.sales.filter(isSale).map((sale) => ({
-              ...sale,
-              status: sale.status ?? "completed",
-              paymentMethod: sale.paymentMethod ?? "Tunai",
-              note: sale.note ?? "",
-            }))
+          ? parsed.sales
+              .map(normalizeSale)
+              .filter((sale): sale is Sale => Boolean(sale))
           : [];
 
-        if (storedProducts.length > 0) {
-          setProducts(storedProducts);
-        }
         setSales(storedSales);
       } catch {
         setNotice({
           tone: "error",
-          message: "Data lokal tidak bisa dibaca. Data contoh tetap dipakai.",
+          message: "Data transaksi lokal tidak bisa dibaca.",
         });
       }
     }
@@ -312,8 +265,110 @@ export function usePOS(): POSController {
       return;
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ products, sales }));
-  }, [products, ready, sales]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ sales }));
+  }, [ready, sales]);
+
+  const refreshProducts = useCallback(async () => {
+    setLoadingProducts(true);
+
+    try {
+      const params = new URLSearchParams({
+        page: String(productPage),
+        limit: String(productLimit),
+        search: debouncedProductSearch,
+        category: productCategory,
+        sort: productSort,
+        dir: productDir,
+      });
+      const response = await fetch(`/api/products?${params.toString()}`);
+      const payload = await readApiJson(response);
+
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(readApiMessage(payload, "Gagal memuat produk."));
+      }
+
+      const result = payload as {
+        items?: unknown[];
+        pagination?: ProductPagination;
+        categories?: string[];
+        summary?: ProductSummary;
+      };
+
+      setProducts(Array.isArray(result.items) ? result.items.filter(isProduct) : []);
+      setProductPagination(result.pagination ?? emptyPagination);
+      setCategories(
+        Array.isArray(result.categories) && result.categories.length > 0
+          ? result.categories
+          : ["Semua"],
+      );
+      setProductSummary(result.summary ?? emptySummary);
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "Gagal memuat produk.",
+      );
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, [
+    debouncedProductSearch,
+    productCategory,
+    productDir,
+    productLimit,
+    productPage,
+    productSort,
+  ]);
+
+  const refreshCashierProducts = useCallback(async () => {
+    setLoadingCashierProducts(true);
+
+    try {
+      const params = new URLSearchParams({
+        page: "1",
+        limit: "20",
+        search: cashierSearch,
+        category: categoryFilter,
+        sort: "name",
+        dir: "asc",
+      });
+      const response = await fetch(`/api/products?${params.toString()}`);
+      const payload = await readApiJson(response);
+
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(readApiMessage(payload, "Gagal memuat produk kasir."));
+      }
+
+      const result = payload as { items?: unknown[]; categories?: string[] };
+
+      setCashierProducts(
+        Array.isArray(result.items) ? result.items.filter(isProduct) : [],
+      );
+      setCategories((current) =>
+        Array.isArray(result.categories) && result.categories.length > current.length
+          ? result.categories
+          : current,
+      );
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "Gagal memuat produk kasir.",
+      );
+    } finally {
+      setLoadingCashierProducts(false);
+    }
+  }, [cashierSearch, categoryFilter]);
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Fetching from the products API synchronizes server data into UI state. */
+    void refreshProducts();
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [refreshProducts]);
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Fetching from the products API synchronizes server data into UI state. */
+    void refreshCashierProducts();
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [refreshCashierProducts]);
 
   const completedSales = useMemo(
     () => sales.filter((sale) => sale.status !== "voided"),
@@ -333,50 +388,13 @@ export function usePOS(): POSController {
     [products],
   );
 
-  const categories = useMemo(() => {
-    const unique = Array.from(
-      new Set(products.map((product) => product.category).filter(Boolean)),
-    ).sort((a, b) => a.localeCompare(b));
-
-    return ["Semua", ...unique];
-  }, [products]);
-
-  const filteredProducts = useMemo(() => {
-    const term = normalize(query);
-
-    return products
-      .filter((product) => {
-        const matchesCategory =
-          categoryFilter === "Semua" || product.category === categoryFilter;
-        const matchesTerm =
-          !term ||
-          normalize(
-            `${product.name} ${product.sku} ${product.barcode} ${product.category}`,
-          ).includes(term);
-
-        return matchesCategory && matchesTerm;
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [categoryFilter, products, query]);
-
-  const cartItems = useMemo(
+  const cartItems = useMemo<CartItem[]>(
     () =>
-      cart
-        .map((line) => {
-          const product = products.find((item) => item.id === line.productId);
-
-          if (!product) {
-            return null;
-          }
-
-          return {
-            ...line,
-            product,
-            subtotal: product.price * line.qty,
-          };
-        })
-        .filter((line): line is CartItem => Boolean(line)),
-    [cart, products],
+      cart.map((line) => ({
+        ...line,
+        subtotal: line.product.price * line.qty,
+      })),
+    [cart],
   );
 
   const cartSubtotal = useMemo(
@@ -391,6 +409,7 @@ export function usePOS(): POSController {
   const canCompleteSale =
     cartItems.length > 0 &&
     !hasStockProblem &&
+    !checkingOut &&
     (paymentMethod !== "Tunai" || paidValue >= saleTotal);
 
   const todayRevenue = todaySales.reduce((total, sale) => total + sale.total, 0);
@@ -456,10 +475,6 @@ export function usePOS(): POSController {
       );
   }, [historyQuery, sales]);
 
-  function showNotice(tone: NonNullable<Notice>["tone"], message: string) {
-    setNotice({ tone, message });
-  }
-
   function addToCart(product: Product) {
     if (product.stock <= 0) {
       showNotice("warning", `${product.name} sedang kosong.`);
@@ -467,10 +482,10 @@ export function usePOS(): POSController {
     }
 
     setCart((current) => {
-      const existing = current.find((line) => line.productId === product.id);
+      const existing = current.find((line) => line.product.id === product.id);
 
       if (!existing) {
-        return [...current, { productId: product.id, qty: 1 }];
+        return [...current, { product, qty: 1 }];
       }
 
       if (existing.qty >= product.stock) {
@@ -479,25 +494,27 @@ export function usePOS(): POSController {
       }
 
       return current.map((line) =>
-        line.productId === product.id ? { ...line, qty: line.qty + 1 } : line,
+        line.product.id === product.id
+          ? { product, qty: line.qty + 1 }
+          : line,
       );
     });
   }
 
   function updateCartQty(productId: string, nextQty: number) {
-    const product = products.find((item) => item.id === productId);
+    const line = cart.find((item) => item.product.id === productId);
 
-    if (!product) {
+    if (!line) {
       return;
     }
 
-    const boundedQty = Math.max(0, Math.min(nextQty, product.stock));
+    const boundedQty = Math.max(0, Math.min(nextQty, line.product.stock));
 
     setCart((current) =>
       boundedQty === 0
-        ? current.filter((line) => line.productId !== productId)
-        : current.map((line) =>
-            line.productId === productId ? { ...line, qty: boundedQty } : line,
+        ? current.filter((item) => item.product.id !== productId)
+        : current.map((item) =>
+            item.product.id === productId ? { ...item, qty: boundedQty } : item,
           ),
     );
   }
@@ -506,117 +523,113 @@ export function usePOS(): POSController {
     setCart([]);
   }
 
-  function completeSale() {
+  async function completeSale() {
     if (!canCompleteSale) {
       showNotice("warning", "Periksa keranjang, stok, dan nominal bayar.");
       return;
     }
 
-    const now = new Date().toISOString();
-    const saleItems: SaleItem[] = cartItems.map((line) => ({
-      productId: line.product.id,
-      name: line.product.name,
-      sku: line.product.sku,
-      qty: line.qty,
-      price: line.product.price,
-      cost: line.product.cost,
-      subtotal: line.subtotal,
-    }));
-    const sale: Sale = {
-      id: createId("sale"),
-      invoice: makeInvoice(sales.length),
-      soldAt: now,
-      items: saleItems,
-      subtotal: cartSubtotal,
-      discount: discountValue,
-      total: saleTotal,
-      paid: paidValue,
-      change: changeValue,
-      paymentMethod,
-      note: saleNote.trim(),
-      status: "completed",
-    };
+    setCheckingOut(true);
 
-    setProducts((current) =>
-      current.map((product) => {
-        const soldItem = saleItems.find((item) => item.productId === product.id);
+    try {
+      const response = await fetch("/api/sales/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cartItems.map((line) => ({
+            productId: line.product.id,
+            qty: line.qty,
+          })),
+          discount: discountValue,
+          paymentMethod,
+          paid: paidValue,
+          note: saleNote.trim(),
+        }),
+      });
+      const payload = await readApiJson(response);
 
-        if (!soldItem) {
-          return product;
-        }
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(readApiMessage(payload, "Transaksi gagal disimpan."));
+      }
 
-        return {
-          ...product,
-          stock: product.stock - soldItem.qty,
-          updatedAt: now,
-        };
-      }),
-    );
-    setSales((current) => [sale, ...current]);
-    setCart([]);
-    setDiscount("");
-    setPaid("");
-    setSaleNote("");
-    showNotice("success", `Transaksi ${sale.invoice} tersimpan.`);
+      const sale = normalizeSale((payload as { sale?: unknown }).sale);
+
+      if (!sale) {
+        throw new Error("Response transaksi tidak valid.");
+      }
+
+      setSales((current) => [sale, ...current]);
+      setCart([]);
+      setDiscount("");
+      setPaid("");
+      setSaleNote("");
+      showNotice("success", `Transaksi ${sale.invoice} tersimpan.`);
+      await Promise.all([refreshProducts(), refreshCashierProducts()]);
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "Transaksi gagal disimpan.",
+      );
+    } finally {
+      setCheckingOut(false);
+    }
   }
 
-  function saveProduct(event: FormEvent<HTMLFormElement>) {
+  async function saveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const name = productForm.name.trim();
-    const sku =
-      productForm.sku.trim() ||
-      `ELK-${String(products.length + 1).padStart(3, "0")}`;
-    const category = productForm.category.trim() || "Umum";
-    const unit = productForm.unit.trim() || "pcs";
     const price = parseMoney(productForm.price);
-    const cost = parseMoney(productForm.cost);
-    const stock = Number(productForm.stock) || 0;
-    const minStock = Number(productForm.minStock) || 0;
 
     if (!name || price <= 0) {
       showNotice("warning", "Nama produk dan harga jual wajib diisi.");
       return;
     }
 
-    const skuAlreadyUsed = products.some(
-      (product) =>
-        normalize(product.sku) === normalize(sku) &&
-        product.id !== editingProductId,
-    );
+    setSavingProduct(true);
 
-    if (skuAlreadyUsed) {
-      showNotice("warning", "SKU sudah dipakai produk lain.");
-      return;
+    try {
+      const response = await fetch(
+        editingProductId ? `/api/products/${editingProductId}` : "/api/products",
+        {
+          method: editingProductId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(productForm),
+        },
+      );
+      const payload = await readApiJson(response);
+
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(readApiMessage(payload, "Produk gagal disimpan."));
+      }
+
+      const savedProduct = (payload as { item?: unknown }).item;
+
+      if (isProduct(savedProduct)) {
+        setCart((current) =>
+          current.map((line) =>
+            line.product.id === savedProduct.id
+              ? { ...line, product: savedProduct }
+              : line,
+          ),
+        );
+      }
+
+      setProductForm(emptyProductForm);
+      setEditingProductId(null);
+      showNotice(
+        "success",
+        editingProductId ? "Produk diperbarui." : "Produk ditambahkan.",
+      );
+      await Promise.all([refreshProducts(), refreshCashierProducts()]);
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "Produk gagal disimpan.",
+      );
+    } finally {
+      setSavingProduct(false);
     }
-
-    const nextProduct: Product = {
-      id: editingProductId ?? createId("prd"),
-      name,
-      sku,
-      barcode: productForm.barcode.trim(),
-      category,
-      unit,
-      price,
-      cost,
-      stock,
-      minStock,
-      updatedAt: new Date().toISOString(),
-    };
-
-    setProducts((current) =>
-      editingProductId
-        ? current.map((product) =>
-            product.id === editingProductId ? nextProduct : product,
-          )
-        : [...current, nextProduct],
-    );
-    setProductForm(emptyProductForm);
-    setEditingProductId(null);
-    showNotice(
-      "success",
-      editingProductId ? "Produk diperbarui." : "Produk ditambahkan.",
-    );
   }
 
   function editProduct(product: Product) {
@@ -640,24 +653,45 @@ export function usePOS(): POSController {
     setProductForm(emptyProductForm);
   }
 
-  function deleteProduct(productId: string) {
-    const product = products.find((item) => item.id === productId);
+  async function deleteProduct(productId: string) {
+    const product =
+      products.find((item) => item.id === productId) ??
+      cashierProducts.find((item) => item.id === productId) ??
+      cart.find((item) => item.product.id === productId)?.product;
 
     if (!product) {
       return;
     }
 
     const ok = window.confirm(
-      `Hapus produk ${product.name}? Riwayat transaksi tetap tersimpan.`,
+      `Nonaktifkan produk ${product.name}? Riwayat transaksi tetap tersimpan.`,
     );
 
     if (!ok) {
       return;
     }
 
-    setProducts((current) => current.filter((item) => item.id !== productId));
-    setCart((current) => current.filter((item) => item.productId !== productId));
-    showNotice("success", "Produk dihapus.");
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: "DELETE",
+      });
+      const payload = await readApiJson(response);
+
+      if (!response.ok) {
+        throw new Error(readApiMessage(payload, "Produk gagal dihapus."));
+      }
+
+      setCart((current) =>
+        current.filter((item) => item.product.id !== productId),
+      );
+      showNotice("success", "Produk dinonaktifkan.");
+      await Promise.all([refreshProducts(), refreshCashierProducts()]);
+    } catch (error) {
+      showNotice(
+        "error",
+        error instanceof Error ? error.message : "Produk gagal dihapus.",
+      );
+    }
   }
 
   function voidSale(sale: Sale) {
@@ -665,9 +699,7 @@ export function usePOS(): POSController {
       return;
     }
 
-    const ok = window.confirm(
-      `Batalkan transaksi ${sale.invoice} dan kembalikan stok?`,
-    );
+    const ok = window.confirm(`Batalkan transaksi ${sale.invoice}?`);
 
     if (!ok) {
       return;
@@ -679,24 +711,7 @@ export function usePOS(): POSController {
         item.id === sale.id ? { ...item, status: "voided", voidedAt: now } : item,
       ),
     );
-    setProducts((current) =>
-      current.map((product) => {
-        const returnedItem = sale.items.find(
-          (item) => item.productId === product.id,
-        );
-
-        if (!returnedItem) {
-          return product;
-        }
-
-        return {
-          ...product,
-          stock: product.stock + returnedItem.qty,
-          updatedAt: now,
-        };
-      }),
-    );
-    showNotice("success", `Transaksi ${sale.invoice} dibatalkan.`);
+    showNotice("success", `Transaksi ${sale.invoice} dibatalkan di riwayat lokal.`);
   }
 
   function printSale(sale: Sale) {
@@ -759,7 +774,12 @@ export function usePOS(): POSController {
 
   function exportBackup() {
     const payload = JSON.stringify(
-      { exportedAt: new Date().toISOString(), products, sales },
+      {
+        exportedAt: new Date().toISOString(),
+        note: "Produk utama tersimpan di Supabase. Backup ini menyimpan transaksi lokal dan halaman produk yang sedang tampil.",
+        products,
+        sales,
+      },
       null,
       2,
     );
@@ -782,32 +802,22 @@ export function usePOS(): POSController {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as {
-        products?: unknown[];
         sales?: unknown[];
       };
-      const importedProducts = Array.isArray(parsed.products)
-        ? parsed.products.filter(isProduct)
-        : [];
       const importedSales = Array.isArray(parsed.sales)
-        ? parsed.sales.filter(isSale)
+        ? parsed.sales
+            .map(normalizeSale)
+            .filter((sale): sale is Sale => Boolean(sale))
         : [];
 
-      if (importedProducts.length === 0) {
-        showNotice("error", "File backup tidak punya data produk yang valid.");
+      if (importedSales.length === 0) {
+        showNotice("error", "File backup tidak punya data transaksi yang valid.");
         return;
       }
 
-      setProducts(importedProducts);
-      setSales(
-        importedSales.map((sale) => ({
-          ...sale,
-          status: sale.status ?? "completed",
-          paymentMethod: sale.paymentMethod ?? "Tunai",
-          note: sale.note ?? "",
-        })),
-      );
+      setSales(importedSales);
       setCart([]);
-      showNotice("success", "Backup berhasil dipulihkan.");
+      showNotice("success", "Transaksi lokal berhasil dipulihkan.");
     } catch {
       showNotice("error", "File backup tidak bisa dibaca.");
     } finally {
@@ -816,20 +826,55 @@ export function usePOS(): POSController {
   }
 
   function resetDemoData() {
-    const ok = window.confirm("Ganti semua data dengan data contoh awal?");
+    const ok = window.confirm("Hapus transaksi lokal dan kosongkan keranjang?");
 
     if (!ok) {
       return;
     }
 
-    setProducts(initialProducts);
     setSales([]);
     setCart([]);
-    showNotice("success", "Data contoh dipasang ulang.");
+    showNotice("success", "Transaksi lokal dikosongkan. Produk tetap dari Supabase.");
   }
 
   function updateProductForm(field: keyof ProductForm, value: string) {
     setProductForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function lookupBarcode(code: string) {
+    const trimmedCode = code.trim();
+
+    if (!trimmedCode) {
+      return { ok: false, message: "Masukkan barcode atau SKU terlebih dulu." };
+    }
+
+    try {
+      const params = new URLSearchParams({ code: trimmedCode });
+      const response = await fetch(`/api/products/lookup?${params.toString()}`);
+      const payload = await readApiJson(response);
+
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(readApiMessage(payload, "Barcode belum terdaftar."));
+      }
+
+      const product = (payload as { item?: unknown }).item;
+
+      if (!isProduct(product)) {
+        throw new Error("Response barcode tidak valid.");
+      }
+
+      addToCart(product);
+
+      return {
+        ok: true,
+        message: `${product.name} ditambahkan ke keranjang.`,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : "Barcode belum terdaftar.",
+      };
+    }
   }
 
   return {
@@ -842,6 +887,24 @@ export function usePOS(): POSController {
     setQuery,
     categoryFilter,
     setCategoryFilter,
+    productSearch,
+    setProductSearch,
+    productCategory,
+    setProductCategory,
+    productSort,
+    setProductSort,
+    productDir,
+    setProductDir,
+    productPage,
+    setProductPage,
+    productLimit,
+    setProductLimit,
+    productPagination,
+    productSummary,
+    loadingProducts,
+    loadingCashierProducts,
+    savingProduct,
+    checkingOut,
     discount,
     setDiscount,
     paid,
@@ -860,7 +923,7 @@ export function usePOS(): POSController {
     todaySales,
     lowStockProducts,
     categories,
-    filteredProducts,
+    filteredProducts: cashierProducts,
     cartItems,
     cartSubtotal,
     discountValue,
@@ -891,5 +954,8 @@ export function usePOS(): POSController {
     importBackup,
     resetDemoData,
     updateProductForm,
+    lookupBarcode,
+    refreshProducts,
+    refreshCashierProducts,
   };
 }

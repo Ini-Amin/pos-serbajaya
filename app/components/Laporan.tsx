@@ -31,11 +31,6 @@ function StatTile({
 }
 
 export function Laporan({ pos }: LaporanProps) {
-  const totalStock = pos.products.reduce(
-    (total, product) => total + product.stock,
-    0,
-  );
-
   return (
     <section className="space-y-5">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -47,8 +42,15 @@ export function Laporan({ pos }: LaporanProps) {
           label="Rata-rata nota"
           value={pos.formatRupiah(pos.averageBasket)}
         />
-        <StatTile label="Total stok" value={`${totalStock} item`} tone="green" />
-        <StatTile label="Produk aktif" value={`${pos.products.length} produk`} />
+        <StatTile
+          label="Total stok"
+          value={`${pos.productSummary.totalStock} item`}
+          tone="green"
+        />
+        <StatTile
+          label="Produk aktif"
+          value={`${pos.productSummary.totalProducts} produk`}
+        />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

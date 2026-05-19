@@ -52,9 +52,19 @@ export function Kasir({ pos }: KasirProps) {
           </div>
 
           <div className="max-h-[62vh] divide-y divide-zinc-200 overflow-y-auto pb-6 lg:max-h-full">
-            {pos.filteredProducts.map((product) => {
+            {pos.loadingCashierProducts ? (
+              <div className="p-8 text-center text-sm font-semibold text-zinc-500">
+                Memuat produk...
+              </div>
+            ) : pos.filteredProducts.length === 0 ? (
+              <div className="p-8 text-center text-sm font-semibold text-zinc-500">
+                Produk tidak ditemukan.
+              </div>
+            ) : (
+              pos.filteredProducts.map((product) => {
               const cartQty =
-                pos.cart.find((line) => line.productId === product.id)?.qty ?? 0;
+                pos.cart.find((line) => line.product.id === product.id)?.qty ??
+                0;
               const isLow = product.stock <= product.minStock;
               const canAdd = product.stock > 0 && cartQty < product.stock;
 
@@ -112,7 +122,8 @@ export function Kasir({ pos }: KasirProps) {
                   </button>
                 </article>
               );
-            })}
+              })
+            )}
           </div>
         </div>
       </div>
@@ -279,7 +290,7 @@ export function Kasir({ pos }: KasirProps) {
             disabled={!pos.canCompleteSale}
             className="h-11 w-full rounded-md bg-emerald-700 px-4 text-base font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
           >
-            Simpan Transaksi
+            {pos.checkingOut ? "Menyimpan..." : "Simpan Transaksi"}
           </button>
         </div>
       </aside>

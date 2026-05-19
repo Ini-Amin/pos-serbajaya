@@ -11,6 +11,7 @@ export type Product = {
   cost: number;
   stock: number;
   minStock: number;
+  isActive: boolean;
   updatedAt: string;
 };
 
@@ -43,12 +44,11 @@ export type Sale = {
 };
 
 export type CartLine = {
-  productId: string;
+  product: Product;
   qty: number;
 };
 
 export type CartItem = CartLine & {
-  product: Product;
   subtotal: number;
 };
 
@@ -62,6 +62,24 @@ export type ProductForm = {
   cost: string;
   stock: string;
   minStock: string;
+};
+
+export type ProductSort = "name" | "price" | "cost" | "stock" | "updated_at";
+export type ProductSortDirection = "asc" | "desc";
+
+export type ProductPagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+};
+
+export type ProductSummary = {
+  totalProducts: number;
+  totalStock: number;
+  lowStockCount: number;
 };
 
 export type TabKey = "kasir" | "produk" | "riwayat" | "laporan" | "backup";
@@ -95,6 +113,24 @@ export type POSController = {
   setQuery: Dispatch<SetStateAction<string>>;
   categoryFilter: string;
   setCategoryFilter: Dispatch<SetStateAction<string>>;
+  productSearch: string;
+  setProductSearch: Dispatch<SetStateAction<string>>;
+  productCategory: string;
+  setProductCategory: Dispatch<SetStateAction<string>>;
+  productSort: ProductSort;
+  setProductSort: Dispatch<SetStateAction<ProductSort>>;
+  productDir: ProductSortDirection;
+  setProductDir: Dispatch<SetStateAction<ProductSortDirection>>;
+  productPage: number;
+  setProductPage: Dispatch<SetStateAction<number>>;
+  productLimit: number;
+  setProductLimit: Dispatch<SetStateAction<number>>;
+  productPagination: ProductPagination;
+  productSummary: ProductSummary;
+  loadingProducts: boolean;
+  loadingCashierProducts: boolean;
+  savingProduct: boolean;
+  checkingOut: boolean;
   discount: string;
   setDiscount: Dispatch<SetStateAction<string>>;
   paid: string;
@@ -133,15 +169,18 @@ export type POSController = {
   addToCart: (product: Product) => void;
   updateCartQty: (productId: string, nextQty: number) => void;
   clearCart: () => void;
-  completeSale: () => void;
-  saveProduct: (event: FormEvent<HTMLFormElement>) => void;
+  completeSale: () => Promise<void>;
+  saveProduct: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   editProduct: (product: Product) => void;
   cancelEditProduct: () => void;
-  deleteProduct: (productId: string) => void;
+  deleteProduct: (productId: string) => Promise<void>;
   voidSale: (sale: Sale) => void;
   printSale: (sale: Sale) => void;
   exportBackup: () => void;
   importBackup: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   resetDemoData: () => void;
   updateProductForm: (field: keyof ProductForm, value: string) => void;
+  lookupBarcode: (code: string) => Promise<{ ok: boolean; message: string }>;
+  refreshProducts: () => Promise<void>;
+  refreshCashierProducts: () => Promise<void>;
 };

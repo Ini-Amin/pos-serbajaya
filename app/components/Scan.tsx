@@ -11,8 +11,9 @@ type ScanProps = {
 export function Scan({ pos }: ScanProps) {
   const [barcode, setBarcode] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmedBarcode = barcode.trim();
@@ -22,21 +23,14 @@ export function Scan({ pos }: ScanProps) {
       return;
     }
 
-    const value = trimmedBarcode.toLowerCase();
-    const product = pos.products.find(
-      (item) =>
-        (item.barcode.trim() && item.barcode.trim().toLowerCase() === value) ||
-        item.sku.trim().toLowerCase() === value,
-    );
+    setLoading(true);
+    const result = await pos.lookupBarcode(trimmedBarcode);
+    setLoading(false);
+    setMessage(result.message);
 
-    if (product) {
-      pos.addToCart(product);
+    if (result.ok) {
       setBarcode("");
-      setMessage(`${product.name} ditambahkan ke keranjang.`);
-      return;
     }
-
-    setMessage(`Barcode/SKU "${trimmedBarcode}" belum terdaftar.`);
   }
 
   return (
@@ -59,9 +53,10 @@ export function Scan({ pos }: ScanProps) {
         />
         <button
           type="submit"
-          className="h-10 rounded-md bg-zinc-950 px-4 text-sm font-bold text-white hover:bg-zinc-800"
+          disabled={loading}
+          className="h-10 rounded-md bg-zinc-950 px-4 text-sm font-bold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
-          Tambah
+          {loading ? "Cari..." : "Tambah"}
         </button>
       </form>
     </section>

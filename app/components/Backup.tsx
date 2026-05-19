@@ -63,7 +63,7 @@ export function Backup({ pos }: BackupProps) {
       <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">Data Aplikasi</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <StatTile label="Produk" value={String(pos.products.length)} />
+          <StatTile label="Produk" value={String(pos.productSummary.totalProducts)} />
           <StatTile label="Transaksi" value={String(pos.sales.length)} />
           <StatTile label="Batal" value={String(voidedSales.length)} tone="red" />
         </div>
