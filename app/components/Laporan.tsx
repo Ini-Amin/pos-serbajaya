@@ -1,6 +1,15 @@
 "use client";
 
+import { Pencil } from "lucide-react";
 import type { POSController, StatTone } from "../types/pos";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type LaporanProps = {
   pos: POSController;
@@ -16,23 +25,25 @@ function StatTile({
   tone?: StatTone;
 }) {
   const toneClass = {
-    neutral: "border-zinc-200 bg-white text-zinc-950",
+    neutral: "border-border bg-card",
     green: "border-emerald-200 bg-emerald-50 text-emerald-950",
     amber: "border-amber-200 bg-amber-50 text-amber-950",
     red: "border-red-200 bg-red-50 text-red-950",
   }[tone];
 
   return (
-    <div className={`rounded-lg border p-4 ${toneClass}`}>
-      <p className="text-xs font-semibold uppercase text-zinc-500">{label}</p>
-      <p className="mt-2 text-xl font-bold leading-tight">{value}</p>
-    </div>
+    <Card className={`gap-1 p-4 shadow-none ${toneClass}`} size="sm">
+      <p className="text-xs font-semibold uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-xl font-semibold leading-tight">{value}</p>
+    </Card>
   );
 }
 
 export function Laporan({ pos }: LaporanProps) {
   return (
-    <section className="space-y-5">
+    <section className="space-y-4">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <StatTile
           label="Item terjual hari ini"
@@ -53,67 +64,72 @@ export function Laporan({ pos }: LaporanProps) {
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-bold">Produk Terlaris</h2>
-          <div className="mt-4 space-y-3">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>Produk Terlaris</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             {pos.productSalesRanking.length === 0 ? (
-              <p className="text-sm font-semibold text-zinc-500">
+              <p className="text-sm font-semibold text-muted-foreground">
                 Belum ada data penjualan.
               </p>
             ) : (
               pos.productSalesRanking.map((item, index) => (
                 <div
                   key={item.name}
-                  className="grid grid-cols-[36px_1fr_auto] items-center gap-3 rounded-md border border-zinc-200 p-3"
+                  className="grid grid-cols-[36px_1fr_auto] items-center gap-3 rounded-lg border p-3"
                 >
-                  <span className="rounded-md bg-zinc-100 px-2 py-1 text-center text-xs font-bold">
+                  <Badge variant="secondary" className="justify-center">
                     {index + 1}
-                  </span>
-                  <div>
-                    <p className="font-bold">{item.name}</p>
-                    <p className="text-sm font-semibold text-zinc-500">
+                  </Badge>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{item.name}</p>
+                    <p className="text-sm font-medium text-muted-foreground">
                       {item.qty} item / laba {pos.formatRupiah(item.profit)}
                     </p>
                   </div>
-                  <p className="font-bold">{pos.formatRupiah(item.revenue)}</p>
+                  <p className="font-semibold">{pos.formatRupiah(item.revenue)}</p>
                 </div>
               ))
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-bold">Stok Menipis</h2>
-          <div className="mt-4 space-y-3">
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>Stok Menipis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             {pos.lowStockProducts.length === 0 ? (
-              <p className="text-sm font-semibold text-zinc-500">
+              <p className="text-sm font-semibold text-muted-foreground">
                 Semua stok masih aman.
               </p>
             ) : (
               pos.lowStockProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-amber-200 bg-amber-50 p-3"
+                  className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3"
                 >
-                  <div>
-                    <p className="font-bold">{product.name}</p>
-                    <p className="text-sm font-semibold text-amber-900">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{product.name}</p>
+                    <p className="text-sm font-medium text-amber-900">
                       Minimal {product.minStock} {product.unit}
                     </p>
                   </div>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => pos.editProduct(product)}
-                    className="rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-bold text-amber-900"
                   >
+                    <Pencil className="size-3.5" />
                     Edit
-                  </button>
+                  </Button>
                 </div>
               ))
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

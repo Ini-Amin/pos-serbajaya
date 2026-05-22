@@ -1,6 +1,14 @@
 "use client";
 
+import { RotateCcw, Upload } from "lucide-react";
 import type { POSController, StatTone } from "../types/pos";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type BackupProps = {
   pos: POSController;
@@ -16,17 +24,19 @@ function StatTile({
   tone?: StatTone;
 }) {
   const toneClass = {
-    neutral: "border-zinc-200 bg-white text-zinc-950",
+    neutral: "border-border bg-card",
     green: "border-emerald-200 bg-emerald-50 text-emerald-950",
     amber: "border-amber-200 bg-amber-50 text-amber-950",
     red: "border-red-200 bg-red-50 text-red-950",
   }[tone];
 
   return (
-    <div className={`rounded-lg border p-4 ${toneClass}`}>
-      <p className="text-xs font-semibold uppercase text-zinc-500">{label}</p>
-      <p className="mt-2 text-xl font-bold leading-tight">{value}</p>
-    </div>
+    <Card className={`gap-1 p-4 shadow-none ${toneClass}`} size="sm">
+      <p className="text-xs font-semibold uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-xl font-semibold leading-tight">{value}</p>
+    </Card>
   );
 }
 
@@ -34,47 +44,57 @@ export function Backup({ pos }: BackupProps) {
   const voidedSales = pos.sales.filter((sale) => sale.status === "voided");
 
   return (
-    <section className="grid gap-5 lg:grid-cols-2">
-      <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-bold">Backup Data Lokal</h2>
-        <p className="mt-2 text-sm font-semibold text-zinc-500">
-          Simpan file backup secara rutin ke flashdisk atau folder lain.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={pos.exportBackup}
-            className="rounded-md bg-zinc-950 px-4 py-3 text-sm font-bold text-white hover:bg-zinc-800"
-          >
+    <section className="grid gap-4 lg:grid-cols-2">
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle>Backup Data Lokal</CardTitle>
+          <p className="text-sm font-medium text-muted-foreground">
+            Simpan file backup transaksi lokal secara rutin.
+          </p>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button type="button" onClick={pos.exportBackup}>
+            <Upload className="size-4" />
             Export JSON
-          </button>
-          <label className="cursor-pointer rounded-md border border-zinc-300 px-4 py-3 text-sm font-bold hover:border-emerald-400 hover:text-emerald-800">
-            Import JSON
-            <input
-              type="file"
-              accept="application/json"
-              onChange={pos.importBackup}
-              className="sr-only"
-            />
-          </label>
-        </div>
-      </div>
+          </Button>
+          <Button asChild variant="outline">
+            <label className="cursor-pointer">
+              Import JSON
+              <input
+                type="file"
+                accept="application/json"
+                onChange={pos.importBackup}
+                className="sr-only"
+              />
+            </label>
+          </Button>
+        </CardContent>
+      </Card>
 
-      <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-bold">Data Aplikasi</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <StatTile label="Produk" value={String(pos.productSummary.totalProducts)} />
-          <StatTile label="Transaksi" value={String(pos.sales.length)} />
-          <StatTile label="Batal" value={String(voidedSales.length)} tone="red" />
-        </div>
-        <button
-          type="button"
-          onClick={pos.resetDemoData}
-          className="mt-5 rounded-md border border-red-200 px-4 py-3 text-sm font-bold text-red-700 hover:bg-red-50"
-        >
-          Reset Data Contoh
-        </button>
-      </div>
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle>Data Aplikasi</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <StatTile
+              label="Produk"
+              value={String(pos.productSummary.totalProducts)}
+            />
+            <StatTile label="Transaksi" value={String(pos.sales.length)} />
+            <StatTile label="Batal" value={String(voidedSales.length)} tone="red" />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={pos.resetDemoData}
+            className="mt-5"
+          >
+            <RotateCcw className="size-4" />
+            Reset Data Lokal
+          </Button>
+        </CardContent>
+      </Card>
     </section>
   );
 }

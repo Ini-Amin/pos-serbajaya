@@ -3,6 +3,9 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import type { POSController } from "../types/pos";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 type ScanProps = {
   pos: POSController;
@@ -34,31 +37,32 @@ export function Scan({ pos }: ScanProps) {
   }
 
   return (
-    <section className="rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-bold">Scan Barcode</h2>
+    <Card size="sm" className="shadow-none">
+      <CardHeader className="grid-cols-[1fr_auto] items-center">
+        <CardTitle>Scan Barcode</CardTitle>
         {message ? (
-          <p className="truncate text-sm font-semibold text-zinc-600">
+          <p className="max-w-[52vw] truncate text-sm font-semibold text-muted-foreground">
             {message}
           </p>
         ) : null}
-      </div>
-      <form onSubmit={handleSubmit} className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
-        <input
-          value={barcode}
-          onChange={(event) => setBarcode(event.target.value)}
-          placeholder="Scan atau ketik barcode"
-          autoFocus
-          className="h-10 min-w-0 rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="h-10 rounded-md bg-zinc-950 px-4 text-sm font-bold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+      </CardHeader>
+      <CardContent>
+        <form
+          onSubmit={handleSubmit}
+          className="grid gap-2 sm:grid-cols-[1fr_auto]"
         >
-          {loading ? "Cari..." : "Tambah"}
-        </button>
-      </form>
-    </section>
+          <Input
+            value={barcode}
+            onChange={(event) => setBarcode(event.target.value)}
+            placeholder="Scan atau ketik barcode"
+            autoFocus
+            className="h-10 min-w-0"
+          />
+          <Button type="submit" disabled={loading} className="h-10">
+            {loading ? "Cari..." : "Tambah"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

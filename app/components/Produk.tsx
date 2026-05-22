@@ -1,7 +1,33 @@
 "use client";
 
 import JsBarcode from "jsbarcode";
+import { Barcode, Pencil, Trash2 } from "lucide-react";
 import type { POSController, Product } from "../types/pos";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type ProdukProps = {
   pos: POSController;
@@ -153,317 +179,300 @@ export function Produk({ pos }: ProdukProps) {
   }
 
   return (
-    <section className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
-      <form
-        onSubmit={pos.saveProduct}
-        className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold">
+    <section className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
+      <Card className="shadow-none">
+        <CardHeader className="grid-cols-[1fr_auto] items-center">
+          <CardTitle>
             {pos.editingProductId ? "Edit Produk" : "Tambah Produk"}
-          </h2>
+          </CardTitle>
           {pos.editingProductId ? (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={pos.cancelEditProduct}
-              className="rounded-md border border-zinc-200 px-3 py-2 text-sm font-semibold"
             >
               Batal
-            </button>
+            </Button>
           ) : null}
-        </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={pos.saveProduct} className="grid gap-3">
+            <div className="space-y-1.5">
+              <Label>Nama produk</Label>
+              <Input
+                value={pos.productForm.name}
+                onChange={(event) =>
+                  pos.updateProductForm("name", event.target.value)
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>SKU</Label>
+                <Input
+                  value={pos.productForm.sku}
+                  onChange={(event) =>
+                    pos.updateProductForm("sku", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Barcode</Label>
+                <Input
+                  value={pos.productForm.barcode}
+                  onChange={(event) =>
+                    pos.updateProductForm("barcode", event.target.value)
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Kategori</Label>
+                <Input
+                  value={pos.productForm.category}
+                  onChange={(event) =>
+                    pos.updateProductForm("category", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Satuan</Label>
+                <Input
+                  value={pos.productForm.unit}
+                  onChange={(event) =>
+                    pos.updateProductForm("unit", event.target.value)
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Harga jual</Label>
+                <Input
+                  value={pos.productForm.price}
+                  onChange={(event) =>
+                    pos.updateProductForm("price", event.target.value)
+                  }
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Harga modal</Label>
+                <Input
+                  value={pos.productForm.cost}
+                  onChange={(event) =>
+                    pos.updateProductForm("cost", event.target.value)
+                  }
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Stok</Label>
+                <Input
+                  value={pos.productForm.stock}
+                  onChange={(event) =>
+                    pos.updateProductForm("stock", event.target.value)
+                  }
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Min stok</Label>
+                <Input
+                  value={pos.productForm.minStock}
+                  onChange={(event) =>
+                    pos.updateProductForm("minStock", event.target.value)
+                  }
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
 
-        <div className="mt-4 grid gap-3">
-          <label className="space-y-1">
-            <span className="text-xs font-semibold uppercase text-zinc-500">
-              Nama produk
-            </span>
-            <input
-              value={pos.productForm.name}
-              onChange={(event) =>
-                pos.updateProductForm("name", event.target.value)
-              }
-              className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                SKU
-              </span>
-              <input
-                value={pos.productForm.sku}
-                onChange={(event) =>
-                  pos.updateProductForm("sku", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Barcode
-              </span>
-              <input
-                value={pos.productForm.barcode}
-                onChange={(event) =>
-                  pos.updateProductForm("barcode", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Kategori
-              </span>
-              <input
-                value={pos.productForm.category}
-                onChange={(event) =>
-                  pos.updateProductForm("category", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Satuan
-              </span>
-              <input
-                value={pos.productForm.unit}
-                onChange={(event) =>
-                  pos.updateProductForm("unit", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Harga jual
-              </span>
-              <input
-                value={pos.productForm.price}
-                onChange={(event) =>
-                  pos.updateProductForm("price", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-                inputMode="numeric"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Harga modal
-              </span>
-              <input
-                value={pos.productForm.cost}
-                onChange={(event) =>
-                  pos.updateProductForm("cost", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-                inputMode="numeric"
-              />
-            </label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Stok
-              </span>
-              <input
-                value={pos.productForm.stock}
-                onChange={(event) =>
-                  pos.updateProductForm("stock", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-                inputMode="numeric"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Min stok
-              </span>
-              <input
-                value={pos.productForm.minStock}
-                onChange={(event) =>
-                  pos.updateProductForm("minStock", event.target.value)
-                }
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-                inputMode="numeric"
-              />
-            </label>
-          </div>
-        </div>
+            <Button type="submit" disabled={pos.savingProduct} className="h-10">
+              {pos.savingProduct
+                ? "Menyimpan..."
+                : pos.editingProductId
+                  ? "Simpan Perubahan"
+                  : "Tambah Produk"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-        <button
-          type="submit"
-          disabled={pos.savingProduct}
-          className="mt-4 h-11 w-full rounded-md bg-emerald-700 px-4 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
-        >
-          {pos.savingProduct
-            ? "Menyimpan..."
-            : pos.editingProductId
-              ? "Simpan Perubahan"
-              : "Tambah Produk"}
-        </button>
-      </form>
-
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
-        <div className="grid gap-3 border-b border-zinc-200 p-4 xl:grid-cols-[1fr_auto] xl:items-end">
+      <Card className="gap-0 overflow-hidden py-0 shadow-none">
+        <div className="grid gap-3 border-b p-4 xl:grid-cols-[1fr_auto] xl:items-end">
           <div>
-            <h2 className="text-lg font-bold">Daftar Produk</h2>
-            <p className="text-sm font-semibold text-zinc-500">
+            <h2 className="text-lg font-semibold">Daftar Produk</h2>
+            <p className="text-sm font-medium text-muted-foreground">
               {pos.productPagination.total} produk aktif
             </p>
           </div>
           <div className="grid gap-2 md:grid-cols-[minmax(220px,1fr)_160px_150px_120px] xl:min-w-[720px]">
-            <input
+            <Input
               value={pos.productSearch}
               onChange={(event) => pos.setProductSearch(event.target.value)}
               placeholder="Cari nama, SKU, barcode"
-              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+              className="h-10"
             />
-            <select
+            <Select
               value={pos.productCategory}
-              onChange={(event) => pos.setProductCategory(event.target.value)}
-              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+              onValueChange={pos.setProductCategory}
             >
-              {pos.categories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-            <select
+              <SelectTrigger className="h-10 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {pos.categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
               value={pos.productSort}
-              onChange={(event) =>
-                pos.setProductSort(
-                  event.target.value as typeof pos.productSort,
-                )
+              onValueChange={(value) =>
+                pos.setProductSort(value as typeof pos.productSort)
               }
-              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
             >
-              <option value="name">Nama</option>
-              <option value="price">Harga jual</option>
-              <option value="cost">Harga modal</option>
-              <option value="stock">Stok</option>
-              <option value="updated_at">Terbaru</option>
-            </select>
-            <select
+              <SelectTrigger className="h-10 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Nama</SelectItem>
+                <SelectItem value="price">Harga jual</SelectItem>
+                <SelectItem value="cost">Harga modal</SelectItem>
+                <SelectItem value="stock">Stok</SelectItem>
+                <SelectItem value="updated_at">Terbaru</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
               value={pos.productDir}
-              onChange={(event) =>
-                pos.setProductDir(event.target.value as typeof pos.productDir)
+              onValueChange={(value) =>
+                pos.setProductDir(value as typeof pos.productDir)
               }
-              className="h-10 rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
             >
-              <option value="asc">A-Z / kecil</option>
-              <option value="desc">Z-A / besar</option>
-            </select>
+              <SelectTrigger className="h-10 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">A-Z / kecil</SelectItem>
+                <SelectItem value="desc">Z-A / besar</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
-              <tr>
-                <th className="px-4 py-3">Produk</th>
-                <th className="px-4 py-3">Kategori</th>
-                <th className="px-4 py-3">Harga</th>
-                <th className="px-4 py-3">Modal</th>
-                <th className="px-4 py-3">Stok</th>
-                <th className="px-4 py-3 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-200">
-              {pos.loadingProducts ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-10 text-center text-sm font-semibold text-zinc-500"
-                  >
-                    Memuat produk...
-                  </td>
-                </tr>
-              ) : pos.products.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-10 text-center text-sm font-semibold text-zinc-500"
-                  >
-                    Produk tidak ditemukan.
-                  </td>
-                </tr>
-              ) : (
-                pos.products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="px-4 py-3">
-                      <p className="font-bold">{product.name}</p>
-                      <p className="text-xs font-semibold text-zinc-500">
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-4">Produk</TableHead>
+              <TableHead>Kategori</TableHead>
+              <TableHead>Harga</TableHead>
+              <TableHead>Modal</TableHead>
+              <TableHead>Stok</TableHead>
+              <TableHead className="pr-4 text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pos.loadingProducts ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center font-semibold text-muted-foreground"
+                >
+                  Memuat produk...
+                </TableCell>
+              </TableRow>
+            ) : pos.products.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center font-semibold text-muted-foreground"
+                >
+                  Produk tidak ditemukan.
+                </TableCell>
+              </TableRow>
+            ) : (
+              pos.products.map((product) => {
+                const isLow = product.stock <= product.minStock;
+
+                return (
+                  <TableRow key={product.id}>
+                    <TableCell className="px-4">
+                      <p className="font-semibold">{product.name}</p>
+                      <p className="text-xs font-medium text-muted-foreground">
                         {product.sku}
                         {product.barcode ? ` / ${product.barcode}` : ""}
                       </p>
-                    </td>
-                    <td className="px-4 py-3">{product.category}</td>
-                    <td className="px-4 py-3 font-semibold">
+                    </TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell className="font-semibold">
                       {pos.formatRupiah(product.price)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {pos.formatRupiah(product.cost)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-md px-2 py-1 text-xs font-bold ${
-                          product.stock <= product.minStock
-                            ? "bg-amber-100 text-amber-900"
-                            : "bg-zinc-100 text-zinc-700"
-                        }`}
-                      >
+                    </TableCell>
+                    <TableCell>{pos.formatRupiah(product.cost)}</TableCell>
+                    <TableCell>
+                      <Badge variant={isLow ? "destructive" : "secondary"}>
                         {product.stock} {product.unit}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="pr-4">
                       <div className="flex justify-end gap-2">
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => pos.editProduct(product)}
-                          className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-bold hover:border-emerald-300 hover:text-emerald-800"
                         >
+                          <Pencil className="size-3.5" />
                           Edit
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => printBarcodeLabels(product)}
-                          className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-bold hover:border-blue-300 hover:text-blue-700"
                         >
-                          Barcode
-                        </button>
-                        <button
+                          <Barcode className="size-3.5" />
+                          Label
+                        </Button>
+                        <Button
                           type="button"
+                          variant="destructive"
+                          size="sm"
                           onClick={() => pos.deleteProduct(product.id)}
-                          className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-bold hover:border-red-300 hover:text-red-700"
                         >
+                          <Trash2 className="size-3.5" />
                           Hapus
-                        </button>
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex flex-col gap-3 border-t border-zinc-200 px-4 py-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm font-semibold text-zinc-500">
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+
+        <div className="flex flex-col gap-3 border-t px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm font-semibold text-muted-foreground">
             Halaman {pos.productPagination.page} dari{" "}
             {pos.productPagination.totalPages}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => pos.setProductPage((page) => Math.max(1, page - 1))}
               disabled={!pos.productPagination.hasPrev || pos.loadingProducts}
-              className="h-9 rounded-md border border-zinc-200 px-3 text-sm font-bold disabled:cursor-not-allowed disabled:text-zinc-300"
             >
               Previous
-            </button>
+            </Button>
             {pageButtons(
               pos.productPagination.page,
               pos.productPagination.totalPages,
@@ -471,41 +480,42 @@ export function Produk({ pos }: ProdukProps) {
               page === "..." ? (
                 <span
                   key={`ellipsis-${index}`}
-                  className="px-2 text-sm font-bold text-zinc-400"
+                  className="px-2 text-sm font-bold text-muted-foreground"
                 >
                   ...
                 </span>
               ) : (
-                <button
+                <Button
                   key={page}
                   type="button"
+                  variant={
+                    page === pos.productPagination.page ? "default" : "outline"
+                  }
+                  size="sm"
                   onClick={() => pos.setProductPage(page)}
                   disabled={pos.loadingProducts}
-                  className={`h-9 min-w-9 rounded-md border px-3 text-sm font-bold ${
-                    page === pos.productPagination.page
-                      ? "border-emerald-700 bg-emerald-700 text-white"
-                      : "border-zinc-200 hover:border-zinc-400"
-                  }`}
+                  className="min-w-9"
                 >
                   {page}
-                </button>
+                </Button>
               ),
             )}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() =>
                 pos.setProductPage((page) =>
                   Math.min(pos.productPagination.totalPages, page + 1),
                 )
               }
               disabled={!pos.productPagination.hasNext || pos.loadingProducts}
-              className="h-9 rounded-md border border-zinc-200 px-3 text-sm font-bold disabled:cursor-not-allowed disabled:text-zinc-300"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

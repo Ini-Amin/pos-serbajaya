@@ -1,8 +1,37 @@
 "use client";
 
 import Image from "next/image";
+import {
+  CheckCircle2,
+  ClipboardList,
+  FileImage,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { POSController, Product } from "../types/pos";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 type NotaProps = {
   pos: POSController;
@@ -443,202 +472,195 @@ export function Nota({ pos }: NotaProps) {
   }
 
   return (
-    <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_460px]">
+    <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_430px]">
       <div className="space-y-4">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <Card className="shadow-none">
+          <CardHeader className="grid-cols-[1fr_auto] items-center gap-3">
             <div>
-              <h2 className="text-lg font-bold">Nota / Pembelian</h2>
-              <p className="text-sm font-semibold text-zinc-500">
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="size-4 text-primary" />
+                Nota / Pembelian
+              </CardTitle>
+              <p className="text-sm font-medium text-muted-foreground">
                 Arsip foto nota dan catat barang masuk manual.
               </p>
             </div>
             {editingId ? (
-              <button
+              <Button
                 type="button"
                 onClick={resetForm}
-                className="rounded-md border border-zinc-200 px-3 py-2 text-sm font-bold"
+                variant="outline"
+                size="sm"
               >
                 Batal Edit
-              </button>
+              </Button>
             ) : null}
-          </div>
+          </CardHeader>
 
-          {message ? (
-            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-              {message}
+          <CardContent className="space-y-4">
+            {message ? (
+              <Alert>
+                <AlertDescription className="font-semibold text-foreground">
+                  {message}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Sales / Supplier</Label>
+                <Input
+                  value={supplierName}
+                  onChange={(event) => setSupplierName(event.target.value)}
+                  placeholder="Nama sales atau toko supplier"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Tanggal Nota</Label>
+                <Input
+                  type="date"
+                  value={noteDate}
+                  onChange={(event) => setNoteDate(event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Nomor Nota</Label>
+                <Input
+                  value={invoiceNumber}
+                  onChange={(event) => setInvoiceNumber(event.target.value)}
+                  placeholder="Opsional"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Foto Nota</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(event) =>
+                    handleImageUpload(event.target.files?.[0])
+                  }
+                />
+              </div>
             </div>
-          ) : null}
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Sales / Supplier
-              </span>
-              <input
-                value={supplierName}
-                onChange={(event) => setSupplierName(event.target.value)}
-                placeholder="Nama sales atau toko supplier"
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Tanggal Nota
-              </span>
-              <input
-                type="date"
-                value={noteDate}
-                onChange={(event) => setNoteDate(event.target.value)}
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Nomor Nota
-              </span>
-              <input
-                value={invoiceNumber}
-                onChange={(event) => setInvoiceNumber(event.target.value)}
+            <div className="space-y-1.5">
+              <Label>Catatan</Label>
+              <Textarea
+                value={noteText}
+                onChange={(event) => setNoteText(event.target.value)}
                 placeholder="Opsional"
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Foto Nota
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(event) => handleImageUpload(event.target.files?.[0])}
-                className="block w-full text-sm font-semibold text-zinc-600 file:mr-3 file:h-10 file:rounded-md file:border-0 file:bg-zinc-950 file:px-3 file:text-sm file:font-bold file:text-white"
-              />
-            </label>
-          </div>
-
-          <label className="mt-3 block space-y-1">
-            <span className="text-xs font-semibold uppercase text-zinc-500">
-              Catatan
-            </span>
-            <input
-              value={noteText}
-              onChange={(event) => setNoteText(event.target.value)}
-              placeholder="Opsional"
-              className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          {imageUrl ? (
-            <div className="mt-4 overflow-hidden rounded-md border border-zinc-200">
-              <Image
-                src={imageUrl}
-                alt="Preview nota"
-                width={900}
-                height={320}
-                unoptimized
-                className="max-h-72 w-full object-contain bg-zinc-50"
+                className="min-h-20"
               />
             </div>
-          ) : null}
-        </div>
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-          <div className="grid gap-3 md:grid-cols-[1fr_260px] md:items-end">
+            {imageUrl ? (
+              <div className="overflow-hidden rounded-lg border bg-muted/30">
+                <Image
+                  src={imageUrl}
+                  alt="Preview nota"
+                  width={900}
+                  height={320}
+                  unoptimized
+                  className="max-h-72 w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex min-h-28 items-center justify-center rounded-lg border border-dashed bg-muted/20 text-sm font-semibold text-muted-foreground">
+                <FileImage className="mr-2 size-4" />
+                Belum ada foto nota
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none">
+          <CardHeader className="gap-3 md:grid-cols-[1fr_280px] md:items-end">
             <div>
-              <h3 className="font-bold">Isi Barang Nota</h3>
-              <p className="text-sm font-semibold text-zinc-500">
+              <CardTitle>Isi Barang Nota</CardTitle>
+              <p className="text-sm font-medium text-muted-foreground">
                 Hubungkan item ke produk sebelum diterapkan ke stok.
               </p>
             </div>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase text-zinc-500">
-                Cari Produk Link
-              </span>
-              <input
+            <div className="space-y-1.5">
+              <Label>Cari Produk Link</Label>
+              <Input
                 value={productLookup}
                 onChange={(event) => setProductLookup(event.target.value)}
                 placeholder="Nama, SKU, barcode"
-                className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
-            </label>
-          </div>
+            </div>
+          </CardHeader>
 
-          <div className="mt-4 space-y-3">
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
             {items.map((item, index) => (
               <div
                 key={item.id}
-                className="grid gap-3 rounded-md border border-zinc-200 p-3 lg:grid-cols-[1.2fr_1.1fr_90px_130px_120px_auto]"
+                className="grid gap-3 rounded-lg border bg-card p-3 lg:grid-cols-[1.2fr_1.1fr_90px_130px_120px_auto]"
               >
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase text-zinc-500">
-                    Nama di nota
-                  </span>
-                  <input
+                <div className="space-y-1.5">
+                  <Label>Nama di nota</Label>
+                  <Input
                     value={item.productName}
                     onChange={(event) =>
                       updateItem(item.id, { productName: event.target.value })
                     }
                     placeholder={`Barang ${index + 1}`}
-                    className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
                   />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase text-zinc-500">
-                    Produk terkait
-                  </span>
-                  <select
-                    value={item.matchedProductId}
-                    onChange={(event) => selectProduct(item.id, event.target.value)}
-                    className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Produk terkait</Label>
+                  <Select
+                    value={item.matchedProductId || "__none__"}
+                    onValueChange={(value) =>
+                      selectProduct(item.id, value === "__none__" ? "" : value)
+                    }
                   >
-                    <option value="">
-                      {loadingProducts ? "Memuat..." : "Belum dihubungkan"}
-                    </option>
-                    {productOptions.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} / {product.sku}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase text-zinc-500">
-                    Qty
-                  </span>
-                  <input
+                    <SelectTrigger className="h-10 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        {loadingProducts ? "Memuat..." : "Belum dihubungkan"}
+                      </SelectItem>
+                      {productOptions.map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} / {product.sku}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Qty</Label>
+                  <Input
                     value={item.qty}
                     onChange={(event) =>
                       updateItem(item.id, { qty: event.target.value })
                     }
                     inputMode="numeric"
-                    className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
                   />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase text-zinc-500">
-                    Harga Beli
-                  </span>
-                  <input
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Harga Beli</Label>
+                  <Input
                     value={item.price}
                     onChange={(event) =>
                       updateItem(item.id, { price: event.target.value })
                     }
                     inputMode="numeric"
-                    className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
                   />
-                </label>
+                </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase text-zinc-500">
-                    Subtotal
-                  </p>
-                  <p className="mt-2 font-bold">
+                  <Label>Subtotal</Label>
+                  <p className="mt-2 font-semibold">
                     {pos.formatRupiah(Number(item.qty || 0) * parseMoney(item.price))}
                   </p>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() =>
                     setItems((current) =>
                       current.length === 1
@@ -646,114 +668,124 @@ export function Nota({ pos }: NotaProps) {
                         : current.filter((line) => line.id !== item.id),
                     )
                   }
-                  className="h-10 self-end rounded-md border border-red-200 px-3 text-sm font-bold text-red-700"
+                  className="h-10 self-end text-destructive hover:text-destructive"
                 >
+                  <Trash2 className="size-4" />
                   Hapus
-                </button>
+                </Button>
               </div>
             ))}
-          </div>
+            </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setItems((current) => [...current, createDraftItem()])}
-              className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-bold"
-            >
-              Tambah Item
-            </button>
+            <Separator />
+
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setItems((current) => [...current, createDraftItem()])
+                }
+              >
+                <Plus className="size-4" />
+                Tambah Item
+              </Button>
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm font-semibold text-zinc-500">
+              <p className="text-sm font-medium text-muted-foreground">
                 Total:{" "}
-                <span className="text-base font-bold text-zinc-950">
+                <span className="text-base font-semibold text-foreground">
                   {pos.formatRupiah(noteTotal)}
                 </span>
               </p>
-              <button
+              <Button
                 type="button"
                 onClick={saveNote}
                 disabled={saving}
-                className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
               >
                 {saving ? "Menyimpan..." : editingId ? "Simpan Edit" : "Simpan Nota"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <aside className="rounded-lg border border-zinc-200 bg-white shadow-sm">
-        <div className="space-y-3 border-b border-zinc-200 p-4">
+      <Card className="gap-0 overflow-hidden py-0 shadow-none">
+        <div className="space-y-3 border-b p-4">
           <div>
-            <h2 className="text-lg font-bold">Riwayat Nota</h2>
-            <p className="text-sm font-semibold text-zinc-500">
+            <CardTitle>Riwayat Nota</CardTitle>
+            <p className="text-sm font-medium text-muted-foreground">
               {pagination.total} nota tersimpan
             </p>
           </div>
-          <input
+          <Input
             value={noteSearch}
             onChange={(event) => setNoteSearch(event.target.value)}
             placeholder="Cari supplier, nomor nota, catatan"
-            className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
           />
-          <select
+          <Select
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="h-10 w-full rounded-md border border-zinc-300 px-3 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            onValueChange={setStatusFilter}
           >
-            <option value="all">Semua status</option>
-            <option value="draft">Draft</option>
-            <option value="applied">Sudah masuk stok</option>
-          </select>
+            <SelectTrigger className="h-10 w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua status</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="reviewed">Sudah dicek</SelectItem>
+              <SelectItem value="applied">Sudah masuk stok</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="max-h-[calc(100dvh-310px)] min-h-[360px] space-y-3 overflow-y-auto p-4">
+        <ScrollArea className="h-[calc(100dvh-320px)] min-h-[360px]">
+          <div className="space-y-3 p-4">
           {loadingNotes ? (
-            <p className="py-8 text-center text-sm font-semibold text-zinc-500">
+            <p className="py-8 text-center text-sm font-semibold text-muted-foreground">
               Memuat nota...
             </p>
           ) : notes.length === 0 ? (
-            <p className="py-8 text-center text-sm font-semibold text-zinc-500">
+            <p className="py-8 text-center text-sm font-semibold text-muted-foreground">
               Belum ada nota.
             </p>
           ) : (
             notes.map((purchaseNote) => (
               <article
                 key={purchaseNote.id}
-                className="rounded-md border border-zinc-200 p-3"
+                className="rounded-lg border bg-card p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h3 className="truncate font-bold">
+                    <h3 className="truncate font-semibold">
                       {purchaseNote.supplierName}
                     </h3>
-                    <p className="text-sm font-semibold text-zinc-500">
+                    <p className="text-sm font-medium text-muted-foreground">
                       {purchaseNote.noteDate}
                       {purchaseNote.invoiceNumber
                         ? ` / ${purchaseNote.invoiceNumber}`
                         : ""}
                     </p>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-md px-2 py-1 text-xs font-bold ${
-                      purchaseNote.status === "applied"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-amber-100 text-amber-900"
-                    }`}
+                  <Badge
+                    variant={
+                      purchaseNote.status === "applied" ? "default" : "secondary"
+                    }
+                    className="shrink-0"
                   >
                     {statusLabel(purchaseNote.status)}
-                  </span>
+                  </Badge>
                 </div>
 
                 <div className="mt-3 space-y-2 text-sm">
                   {purchaseNote.items.map((item) => (
                     <div
                       key={item.id}
-                      className="grid grid-cols-[1fr_auto] gap-3 rounded-md bg-zinc-50 px-3 py-2"
+                      className="grid grid-cols-[1fr_auto] gap-3 rounded-md bg-muted/50 px-3 py-2"
                     >
                       <div className="min-w-0">
-                        <p className="truncate font-semibold">{item.productName}</p>
-                        <p className="text-xs font-semibold text-zinc-500">
+                        <p className="truncate font-medium">{item.productName}</p>
+                        <p className="text-xs font-medium text-muted-foreground">
                           {item.matchedProductId
                             ? "Terhubung ke produk"
                             : "Belum terhubung"}
@@ -767,72 +799,82 @@ export function Nota({ pos }: NotaProps) {
                 </div>
 
                 {purchaseNote.imageUrl ? (
-                  <a
-                    href={purchaseNote.imageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-block text-sm font-bold text-emerald-700"
-                  >
-                    Lihat foto nota
-                  </a>
+                  <Button asChild variant="link" className="mt-2 h-auto px-0">
+                    <a
+                      href={purchaseNote.imageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <FileImage className="size-4" />
+                      Lihat foto nota
+                    </a>
+                  </Button>
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-bold">{pos.formatRupiah(purchaseNote.total)}</p>
+                  <p className="font-semibold">
+                    {pos.formatRupiah(purchaseNote.total)}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {purchaseNote.status !== "applied" ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => editNote(purchaseNote)}
-                        className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-bold"
                       >
+                        <Pencil className="size-3.5" />
                         Edit
-                      </button>
+                      </Button>
                     ) : null}
-                    <button
+                    <Button
                       type="button"
+                      size="sm"
                       onClick={() => applyNote(purchaseNote)}
                       disabled={
                         purchaseNote.status === "applied" ||
                         applyingId === purchaseNote.id
                       }
-                      className="rounded-md bg-zinc-950 px-3 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
                     >
+                      <CheckCircle2 className="size-3.5" />
                       {applyingId === purchaseNote.id
                         ? "Menerapkan..."
                         : "Terapkan Stok"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </article>
             ))
           )}
-        </div>
+          </div>
+        </ScrollArea>
 
-        <div className="flex items-center justify-between gap-3 border-t border-zinc-200 p-4">
-          <button
+        <div className="flex items-center justify-between gap-3 border-t p-4">
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setPage((current) => Math.max(1, current - 1))}
             disabled={!pagination.hasPrev || loadingNotes}
-            className="rounded-md border border-zinc-200 px-3 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:text-zinc-300"
           >
             Previous
-          </button>
-          <p className="text-sm font-semibold text-zinc-500">
+          </Button>
+          <p className="text-sm font-medium text-muted-foreground">
             {pagination.page} / {pagination.totalPages}
           </p>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() =>
               setPage((current) => Math.min(pagination.totalPages, current + 1))
             }
             disabled={!pagination.hasNext || loadingNotes}
-            className="rounded-md border border-zinc-200 px-3 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:text-zinc-300"
           >
             Next
-          </button>
+          </Button>
         </div>
-      </aside>
+      </Card>
     </section>
   );
 }
