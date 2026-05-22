@@ -29,7 +29,7 @@ type KasirProps = {
 
 export function Kasir({ pos }: KasirProps) {
   return (
-    <section className="grid gap-3 xl:h-[calc(100dvh-184px)] xl:min-h-[560px] xl:grid-cols-[minmax(0,1fr)_390px]">
+    <section className="grid gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_390px]">
       <div className="flex min-h-0 flex-col gap-3">
         <Scan pos={pos} />
 
@@ -75,7 +75,7 @@ export function Kasir({ pos }: KasirProps) {
             <span className="text-right">Aksi</span>
           </div>
 
-          <ScrollArea className="h-[62vh] xl:h-full">
+          <ScrollArea className="h-[62vh] min-h-0 xl:h-auto xl:flex-1">
             <div className="divide-y">
               {pos.loadingCashierProducts ? (
                 <div className="p-8 text-center text-sm font-semibold text-muted-foreground">

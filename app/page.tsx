@@ -245,13 +245,17 @@ function ActiveScreen({ pos }: { pos: POSController }) {
 
 export default function Home() {
   const pos = usePOS();
+  const contentOverflow =
+    pos.activeTab === "kasir" ? "lg:overflow-hidden" : "lg:overflow-auto";
 
   return (
-    <main className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
+    <main className="min-h-screen bg-background text-foreground lg:grid lg:h-screen lg:grid-cols-[232px_minmax(0,1fr)] lg:overflow-hidden">
       <Sidebar pos={pos} />
-      <div className="min-w-0">
+      <div className="min-w-0 lg:flex lg:min-h-0 lg:flex-col">
         <TopBar pos={pos} />
-        <div className="mx-auto max-w-[1500px] px-3 py-3 lg:px-5">
+        <div
+          className={`mx-auto w-full max-w-[1500px] px-3 py-3 lg:min-h-0 lg:flex-1 lg:px-5 ${contentOverflow}`}
+        >
           <ActiveScreen pos={pos} />
         </div>
       </div>
