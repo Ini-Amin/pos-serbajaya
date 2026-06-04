@@ -1,36 +1,178 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# POS Serbajaya 🛍️
 
-## Getting Started
+**A modern Point-of-Sale system built to help my father streamline his retail business operations.**
 
-First, run the development server:
+---
+
+## 📋 Project Overview
+
+**Status:** Self-initiated, Individual Project  
+**Live Demo:** [pos-serbajaya.vercel.app](https://pos-serbajaya.vercel.app)  
+**Built With:** Next.js 15 • TypeScript • Supabase • Tailwind CSS
+
+### One-Liner
+A user-friendly POS system designed to handle daily retail operations with real-time inventory tracking and sales reporting.
+
+---
+
+## 🎯 The Story: Why I Built This
+
+My father runs a retail business and was managing transactions and inventory manually on paper. This was inefficient, error-prone, and didn't provide visibility into sales trends. I decided to build a digital solution to solve this real problem.
+
+**Impact:** This system is now used daily in his store, helping him:
+- Process transactions faster
+- Track inventory in real-time
+- Generate sales reports
+- Reduce operational errors
+
+---
+
+## ✨ Key Features
+
+- **👤 Passcode Authentication** - Secure login for cashiers
+- **🛒 Transaction Management** - Add products, apply discounts, process payments
+- **📦 Inventory Tracking** - Real-time stock updates
+- **📊 Sales Reports** - Daily/weekly/monthly transaction history
+- **💰 Payment Handling** - Support for cash and other payment methods
+- **🔐 Row-Level Security** - Database-level access control with Supabase RLS
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 15, TypeScript, Tailwind CSS, React |
+| **Backend** | Next.js API Routes |
+| **Database** | Supabase (PostgreSQL) |
+| **Deployment** | Vercel |
+| **Auth** | Passcode-based session management |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm/yarn
+- Supabase account (free tier works)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Ini-Amin/pos-serbajaya.git
+cd pos-serbajaya
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Fill in your Supabase credentials
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Database Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See [supabase/README.md](./supabase/README.md) for detailed database setup instructions.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+pos-serbajaya/
+├── app/
+│   ├── page.tsx           # Dashboard
+│   ├── transactions/      # Transaction management
+│   ├── products/          # Product catalog
+│   ├── reports/           # Sales reports
+│   └── api/               # API routes
+├── components/            # Reusable React components
+├── lib/
+│   ├── supabase/         # Database client
+│   └── utils.ts          # Utility functions
+├── supabase/
+│   ├── schema.sql        # Database schema
+│   └── seed.sql          # Demo data
+└── .env.example          # Environment template
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🎓 What I Learned
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Technical Growth
+- **Full-stack development** - Building both frontend and backend with Next.js
+- **Database design** - Creating normalized schemas for retail operations
+- **Real-time updates** - Handling concurrent transactions and inventory changes
+- **Authentication & security** - Implementing session management and row-level security
+- **Deployment** - Deploying production applications to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Soft Skills
+- **User empathy** - Understanding real user needs (my father as the end user)
+- **Feedback loops** - Getting daily feedback led to rapid iterations
+- **Problem-solving** - Translating business requirements into technical solutions
+- **The importance of UX** - A feature is only valuable if users can use it
+
+### What I'd Do Differently Now
+- ✅ Add comprehensive error handling and validation
+- ✅ Implement unit and integration tests
+- ✅ Use better state management (Context API or Redux)
+- ✅ Create API documentation
+- ✅ Add role-based access control (manager, cashier, admin)
+- ✅ Optimize database queries with proper indexing
+
+---
+
+## 🔍 How to Test
+
+1. **Access the app:** [pos-serbajaya.vercel.app](https://pos-serbajaya.vercel.app)
+2. **Login:** Use the passcode (ask me for demo credentials)
+3. **Try transactions:** Add products to cart, apply discounts, complete sale
+4. **Check inventory:** See real-time stock updates
+5. **View reports:** Navigate to reports section to see sales history
+
+---
+
+## 🚧 Future Improvements
+
+- [ ] Mobile app version for on-the-go transactions
+- [ ] Advanced analytics and business intelligence
+- [ ] Integration with payment gateways
+- [ ] Multi-store support
+- [ ] Receipt printing
+- [ ] Barcode scanning
+- [ ] Employee management and commission tracking
+
+---
+
+## 📚 Key Files to Review
+
+- **Database Schema:** [supabase/schema.sql](./supabase/schema.sql)
+- **API Routes:** [app/api/](./app/api/)
+- **Transaction Component:** [components/TransactionForm.tsx](./components/TransactionForm.tsx)
+
+---
+
+## 💡 Reflection
+
+This project taught me that **good software isn't about perfect code—it's about solving real problems for real people.** Seeing my father use this system daily and benefit from it was more rewarding than any perfect architecture. It showed me why fundamentals like testing, documentation, and code organization matter: they make it easier to maintain and improve software that real users depend on.
+
+---
+
+## 📞 Contact
+
+Have questions about this project? Reach out!
+
+- **GitHub:** [@Ini-Amin](https://github.com/Ini-Amin)
+- **Email:** [your-email@example.com]
+
+---
+
+**Last Updated:** 2026-06-04  
+**Status:** Active (in daily use)
